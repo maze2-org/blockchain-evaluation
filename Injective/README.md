@@ -1,11 +1,64 @@
-# CosmWasm Starter Pack
+# IABS Token Contract
 
-This is a template to build smart contracts in Rust to run inside a
-[Cosmos SDK](https://github.com/cosmos/cosmos-sdk) module on all chains that enable it.
-To understand the framework better, please read the overview in the
-[cosmwasm repo](https://github.com/CosmWasm/cosmwasm/blob/master/README.md),
-and dig into the [cosmwasm docs](https://www.cosmwasm.com).
-This assumes you understand the theory and just want to get coding.
+A CosmWasm smart contract implementing a fungible token (IABS) with minting functionality.
+
+## Contract Features
+
+- Fungible token named "IABS" with 6 decimal places
+- Users can mint 1,000 IABS tokens by sending 0.01 native token
+- Owner-only withdrawal of collected native tokens
+- Queryable balance, total supply, and collected funds
+
+## Usage
+
+### Instantiation
+
+```json
+{
+    "msg": "instantiate",
+    "funds": []
+}
+```
+
+### Minting
+
+Users can mint 1,000 IABS tokens by sending 0.01 native token:
+
+```json
+{
+    "msg": "mint",
+    "funds": ["amount": "10000000", "denom": "native_token"]
+}
+```
+
+### Withdrawal (Owner Only)
+
+Contract owner can withdraw all collected native tokens:
+
+```json
+{
+    "msg": "withdraw",
+    "funds": []
+}
+```
+
+### Queries
+
+Available queries:
+
+- `GetBalance`: Get user's token balance
+- `GetTotalSupply`: Get total supply of IABS tokens
+- `GetCollectedFunds`: Get amount of native tokens collected through minting
+
+## Security
+
+- Only contract owner can withdraw collected native tokens
+- Minting requires exact amount of native tokens (0.01)
+- All state changes are properly tracked and persisted
+
+## Development
+
+For development instructions, see [Developing.md](./Developing.md).
 
 ## Creating a new repo from template
 

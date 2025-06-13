@@ -5,7 +5,8 @@ use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, CustomQuery, Querier, QuerierWrapper, StdResult, WasmMsg, WasmQuery,
 };
 
-use crate::msg::{CountResponse, ExecuteMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, QueryMsg};
+use crate::msg::{BalanceResponse, TotalSupplyResponse, CollectedFundsResponse};
 
 /// CwTemplateContract is a wrapper around Addr that provides a lot of helpers
 /// for working with this.
@@ -27,20 +28,53 @@ impl CwTemplateContract {
         .into())
     }
 
-    /// Get Count
-    pub fn count<Q, T, CQ>(&self, querier: &Q) -> StdResult<CountResponse>
+    /// Get token balance for this contract address
+    pub fn balance<Q, CQ>(&self, querier: &Q) -> StdResult<BalanceResponse>
     where
         Q: Querier,
-        T: Into<String>,
         CQ: CustomQuery,
     {
-        let msg = QueryMsg::GetCount {};
+        let msg = QueryMsg::GetBalance {
+            address: self.addr().to_string(),
+        };
         let query = WasmQuery::Smart {
             contract_addr: self.addr().into(),
             msg: to_binary(&msg)?,
         }
         .into();
-        let res: CountResponse = QuerierWrapper::<CQ>::new(querier).query(&query)?;
+        let res: BalanceResponse = QuerierWrapper::<CQ>::new(querier).query(&query)?;
+        Ok(res)
+    }
+
+    /// Get total supply
+    pub fn total_supply<Q, CQ>(&self, querier: &Q) -> StdResult<TotalSupplyResponse>
+    where
+        Q: Querier,
+        CQ: CustomQuery,
+    {
+        let msg = QueryMsg::GetTotalSupply {};
+        let query = WasmQuery::Smart {
+            contract_addr: self.addr().into(),
+            msg: to_binary(&msg)?,
+        }
+        .into();
+        let res: TotalSupplyResponse = QuerierWrapper::<CQ>::new(querier).query(&query)?;
+        Ok(res)
+    }
+
+    /// Get collected native funds
+    pub fn collected_funds<Q, CQ>(&self, querier: &Q) -> StdResult<CollectedFundsResponse>
+    where
+        Q: Querier,
+        CQ: CustomQuery,
+    {
+        let msg = QueryMsg::GetCollectedFunds {};
+        let query = WasmQuery::Smart {
+            contract_addr: self.addr().into(),
+            msg: to_binary(&msg)?,
+        }
+        .into();
+        let res: CollectedFundsResponse = QuerierWrapper::<CQ>::new(querier).query(&query)?;
         Ok(res)
     }
 }

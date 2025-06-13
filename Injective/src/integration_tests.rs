@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::helpers::CwTemplateContract;
-    use crate::msg::InstantiateMsg;
+    use crate::msg::{InstantiateMsg, ExecuteMsg, QueryMsg, BalanceResponse};
     use cosmwasm_std::{Addr, Coin, Empty, Uint128};
     use cw_multi_test::{App, AppBuilder, Contract, ContractWrapper, Executor};
 
@@ -14,8 +14,8 @@ mod tests {
         Box::new(contract)
     }
 
-    const USER: &str = "USER";
-    const ADMIN: &str = "ADMIN";
+    const USER: &str = "user";
+    const ADMIN: &str = "admin";
     const NATIVE_DENOM: &str = "denom";
 
     fn mock_app() -> App {
@@ -27,7 +27,7 @@ mod tests {
                     &Addr::unchecked(USER),
                     vec![Coin {
                         denom: NATIVE_DENOM.to_string(),
-                        amount: Uint128::new(1),
+                        amount: Uint128::new(100_000_000),
                     }],
                 )
                 .unwrap();
@@ -38,7 +38,7 @@ mod tests {
         let mut app = mock_app();
         let cw_template_id = app.store_code(contract_template());
 
-        let msg = InstantiateMsg { count: 1i32 };
+        let msg = InstantiateMsg {};
         let cw_template_contract_addr = app
             .instantiate_contract(
                 cw_template_id,
@@ -55,17 +55,82 @@ mod tests {
         (app, cw_template_contract)
     }
 
-    mod count {
+    mod token {
         use super::*;
-        use crate::msg::ExecuteMsg;
 
         #[test]
-        fn count() {
+        fn mint() {
             let (mut app, cw_template_contract) = proper_instantiate();
 
-            let msg = ExecuteMsg::Increment {};
+            let msg = ExecuteMsg::Mint {};
+            let result = app.execute_contract(
+                Addr::unchecked(USER),
+                cw_template_contract.addr(),
+                &msg,
+                &[],
+            );
+            assert!(result.is_err(), "Expected mint to fail with no funds");
+
+            let mint_funds = vec![Coin {
+                denom: NATIVE_DENOM.to_string(),
+                amount: Uint128::new(10_000_000),
+            }];
+
+            app.execute_contract(
+                Addr::unchecked(USER),
+                cw_template_contract.addr(),
+                &msg,
+                &mint_funds,
+            )
+            .unwrap();
+
+            let balance: Uint128 = app
+                .wrap()
+                .query_wasm_smart::<BalanceResponse>(
+                    cw_template_contract.addr(),
+                    &QueryMsg::GetBalance {
+                        address: USER.to_string(),
+                    },
+                )
+                .unwrap()
+                .balance;
+            assert_eq!(balance, Uint128::new(1_000_000_000));
+
+            let total_supply = cw_template_contract.total_supply::<App, Empty>(&app).unwrap();
+            assert_eq!(total_supply.total_supply, Uint128::new(1_000_000_000));
+
+            let collected = cw_template_contract.collected_funds::<App, Empty>(&app).unwrap();
+            assert_eq!(collected.collected_funds, Uint128::new(10_000_000));
+        }
+
+        #[test]
+        fn withdraw() {
+            let (mut app, cw_template_contract) = proper_instantiate();
+
+            let mint_funds = vec![Coin {
+                denom: NATIVE_DENOM.to_string(),
+                amount: Uint128::new(10_000_000),
+            }];
+
+            let msg = ExecuteMsg::Mint {};
+            app.execute_contract(
+                Addr::unchecked(USER),
+                cw_template_contract.addr(),
+                &msg,
+                &mint_funds,
+            )
+            .unwrap();
+
+            let msg = ExecuteMsg::Withdraw {};
+            let cosmos_msg = cw_template_contract.call(msg.clone()).unwrap();
+            let result = app.execute(Addr::unchecked(USER), cosmos_msg);
+            assert!(result.is_err(), "Expected unauthorized withdraw to fail");
+
             let cosmos_msg = cw_template_contract.call(msg).unwrap();
-            app.execute(Addr::unchecked(USER), cosmos_msg).unwrap();
+            _ = app.execute(Addr::unchecked(ADMIN), cosmos_msg).unwrap();
+
+            let collected = cw_template_contract.collected_funds::<App, Empty>(&app).unwrap();
+            assert_eq!(collected.collected_funds, Uint128::zero());
         }
     }
 }

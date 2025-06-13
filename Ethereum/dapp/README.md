@@ -1,2 +1,6 @@
-# Dapp deployment doc
+# Deploy the project
 
+```bash
+npm i
+npm run dev
+```

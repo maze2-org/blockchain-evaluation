@@ -1,0 +1,33 @@
+[package]
+name = "iabs_token"
+version = "0.1.0"
+authors = ["MAZE2 Team <contact@maze2.org>"]
+edition = "2021"
+
+[dependencies]
+ink = { version = "5.1.1", default-features = false }
+
+[dev-dependencies]
+ink_e2e = { version = "5.1.1" }
+
+[lib]
+path = "lib.rs"
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+]
+ink-as-dependency = []
+e2e-tests = []
+
+[profile.release]
+panic = "abort"
+lto = true
+opt-level = "z"
+overflow-checks = false
+
+[profile.dev]
+panic = "abort"
+lto = "thin"
+overflow-checks = false

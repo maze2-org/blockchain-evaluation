@@ -1,0 +1,11 @@
+# Build results
+*/target
+
+# macOS
+.DS_Store
+
+# IDEs
+*.iml
+.idea
+
+dapp/node_modules

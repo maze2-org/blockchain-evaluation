@@ -1,0 +1,12 @@
+# Build results
+.aptos
+contract/build
+
+# macOS
+.DS_Store
+
+# IDEs
+*.iml
+.idea
+
+dapp/node_modules

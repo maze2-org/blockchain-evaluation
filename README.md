@@ -27,11 +27,11 @@ For each blockchain:
 
 - ✅ Ethereum (Hardhat)
 - 🔲 Solana (Anchor)
-- 🔲 Avalanche
-- 🔲 Sui
-- 🔲 Aptos
-- 🔲 Near
+- ✅ Avalanche
+- ✅ Sui
+- ✅ Aptos
+- ✅ Near
 - 🔲 Injective
-- 🔲 Polkadot
+- ✅ Polkadot
 
 Each folder contains its own `README.md` with setup instructions and explanations.
